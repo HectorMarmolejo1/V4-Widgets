@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculateur de rentabilité locative</title>
+  <style>
+    :root {
+      
+      --card: rgba(255,255,255,.88);
+      --ink: #1f2623;
+      --muted: #6d746e;
+      --line: rgba(31,38,35,.13);
+      --soft: #efe8da;
+      --soft-2: #fbf8f1;
+      --accent: #9b7a3c;
+      --accent-dark: #6f5528;
+      --good: #2f7a52;
+      --warn: #b97924;
+      --bad: #a8453b;
+      --shadow: 0 24px 70px rgba(35,28,18,.13);
+      --radius: 28px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(155,122,60,.18), transparent 32%),
+        radial-gradient(circle at bottom right, rgba(31,38,35,.10), transparent 34%),
+        var(--bg);
+      color: var(--ink);
+    }
+
+    .rentability-app {
+      width: 100%;
+      min-height: 100vh;
+      padding: 42px 18px;
+    }
+
+    .shell {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 24px;
+      align-items: stretch;
+      margin-bottom: 24px;
+    }
+
+    .hero-card,
+    .summary-card,
+    .form-card,
+    .result-card,
+    .insight-card,
+    .note-card {
+      background: var(--card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,.70);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+    }
+
+    .hero-card {
+      padding: 36px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card:after {
+      content: "";
+      position: absolute;
+      width: 240px;
+      height: 240px;
+      border-radius: 999px;
+      background: rgba(155,122,60,.13);
+      right: -88px;
+      top: -88px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(155,122,60,.13);
+      color: var(--accent-dark);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .eyebrow:before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 760px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(34px, 5vw, 62px);
+      line-height: .96;
+      letter-spacing: -.04em;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-card p {
+      margin: 18px 0 0;
+      max-width: 660px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.7;
+      position: relative;
+      z-index: 1;
+    }
+
+    .summary-card {
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .summary-label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .main-rate {
+      margin-top: 10px;
+      font-size: clamp(48px, 7vw, 82px);
+      line-height: .9;
+      font-weight: 900;
+      letter-spacing: -.06em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .main-rate span {
+      font-size: .42em;
+      letter-spacing: -.03em;
+      color: var(--accent-dark);
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .mini-kpi {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 16px;
+      background: rgba(255,255,255,.55);
+    }
+
+    .mini-kpi strong {
+      display: block;
+      font-size: 22px;
+      letter-spacing: -.03em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .mini-kpi span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 390px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .form-card {
+      padding: 28px;
+    }
+
+    .section-title {
+      margin: 0 0 20px;
+      font-size: 22px;
+      letter-spacing: -.03em;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .control {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(255,255,255,.52);
+      transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    }
+
+    .control:hover {
+      transform: translateY(-2px);
+      border-color: rgba(155,122,60,.35);
+      box-shadow: 0 16px 32px rgba(35,28,18,.08);
+    }
+
+    .control-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 13px;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: -.01em;
+    }
+
+    .hint {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .counter-pill {
+      flex: 0 0 auto;
+      padding: 9px 11px;
+      min-width: 104px;
+      text-align: right;
+      border-radius: 999px;
+      background: var(--soft-2);
+      border: 1px solid rgba(155,122,60,.18);
+      color: var(--accent-dark);
+      font-weight: 900;
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+      transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
+    }
+
+    .counter-pill.is-counting {
+      transform: scale(1.06);
+      background: #fff;
+      box-shadow: 0 10px 24px rgba(155,122,60,.18);
+    }
+
+    .range-wrap {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    input[type="range"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 100%;
+      height: 9px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent) var(--progress, 50%), rgba(31,38,35,.13) var(--progress, 50%));
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #fff;
+      border: 6px solid var(--accent);
+      box-shadow: 0 8px 20px rgba(35,28,18,.25);
+      transition: transform .16s ease, border-color .16s ease;
+    }
+
+    input[type="range"]:active::-webkit-slider-thumb {
+      transform: scale(1.14);
+      border-color: var(--accent-dark);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #fff;
+      border: 6px solid var(--accent);
+      box-shadow: 0 8px 20px rgba(35,28,18,.25);
+      transition: transform .16s ease, border-color .16s ease;
+    }
+
+    .range-limits {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 750;
+    }
+
+    .side {
+      display: grid;
+      gap: 18px;
+      position: sticky;
+      top: 20px;
+    }
+
+    .result-card,
+    .insight-card,
+    .note-card {
+      padding: 24px;
+    }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 16px;
+      padding: 15px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .result-row:first-of-type { padding-top: 4px; }
+    .result-row:last-child { border-bottom: 0; padding-bottom: 0; }
+
+    .result-row span {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .result-row strong {
+      font-size: 20px;
+      letter-spacing: -.03em;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+
+    .result-row.positive strong { color: var(--good); }
+    .result-row.warning strong { color: var(--warn); }
+    .result-row.negative strong { color: var(--bad); }
+
+    .insight-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(155,122,60,.13);
+      color: var(--accent-dark);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .insight-card h3,
+    .note-card h3 {
+      margin: 0 0 10px;
+      font-size: 20px;
+      letter-spacing: -.03em;
+    }
+
+    .insight-card p,
+    .note-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .bar {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(31,38,35,.10);
+      overflow: hidden;
+      margin-top: 18px;
+    }
+
+    .bar-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+      transition: width .55s cubic-bezier(.2,.8,.2,1);
+    }
+
+    .footer-note {
+      margin-top: 24px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .side { position: static; }
+    }
+
+    @media (max-width: 680px) {
+      .rentability-app { padding: 22px 12px; }
+      .hero-card, .summary-card, .form-card, .result-card, .insight-card, .note-card { border-radius: 22px; }
+      .hero-card, .summary-card, .form-card { padding: 22px; }
+      .controls { grid-template-columns: 1fr; }
+      .summary-grid { grid-template-columns: 1fr; }
+      .control-head { flex-direction: column; }
+      .counter-pill { width: 100%; text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <main class="rentability-app">
+    <div class="shell">
+      <section class="hero">
+        <div class="hero-card">
+          <div class="eyebrow">Investissement locatif</div>
+          <h1>Calculateur de rentabilité locative</h1>
+          <p>
+            Estimez rapidement le rendement brut, le rendement net, le cash-flow mensuel
+            et le retour sur apport d'un projet immobilier.
+          </p>
+        </div>
+
+        <aside class="summary-card" aria-live="polite">
+          <div>
+            <div class="summary-label">Rendement net estimé</div>
+            <div class="main-rate"><span id="netRateMain">0,00</span><span> %</span></div>
+          </div>
+          <div class="summary-grid">
+            <div class="mini-kpi">
+              <strong id="grossRateMini">0,00 %</strong>
+              <span>Rendement brut</span>
+            </div>
+            <div class="mini-kpi">
+              <strong id="cashflowMini">0 €</strong>
+              <span>Cash-flow mensuel</span>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="layout">
+        <div class="form-card">
+          <h2 class="section-title">Paramètres du projet</h2>
+
+          <div class="controls">
+            <div class="control">
+              <div class="control-head">
+                <div>
+                  <label for="purchasePrice">Prix d'achat</label>
+                  <span class="hint">Montant du bien hors frais</span>
+                </div>
+                <output class="counter-pill" for="purchasePrice" id="purchasePriceValue">250 000 €</output>
+              </div>
+              <div class="range-wrap">
+                <input id="purchasePrice" type="range" min="50000" max="1200000" step="5000" value="250000" data-format="currency" />
+                <div class="range-limits"><span>50 000 €</span><span>1 200 000 €</span></div>
+              </div>
+            </div>
+
+            <div class="control">
+              <div class="control-head">
+                <div>
+                  <label for="monthlyRent">Loyer mensuel</label>
+                  <span class="hint">Loyer hors charges</span>
+                </div>
+                <output class="counter-pill" for="monthlyRent" id="monthlyRentValue">1 100 €</output>
+              </div>
+              <div class="range-wrap">
+                <input id="monthlyRent" type="range" min="300" max="6000" step="25" value="1100" data-format="currency" />
+                <div class="range-limits"><span>300 €</span><span>6 000 €</span></div>
+              </div>
+            </div>
+
+            <div class="control">
+              <div class="control-head">
+                <div>
+                  <label for="personalContribution">Apport personnel</label>
+                  <span class="hint">Capital injecté au départ</span>
+                </div>
+                <output class="counter-pill" for="personalContribution" id="personalContributionValue">50 000 €</output>
+              </div>
+              <div class="range-wrap">
+                <input id="personalContribution" type="range" min="0" max="500000" step="2500" value="50000" data-format="currency" />
+                <div class="range-limits"><span>0 €</span><span>500 000 €</span></div>
+              </div>
+            </div>
+
+            <div class="control">
+              <div class="control-head">
+                <div>
+                  <label for="notaryFees">Frais de notaire</label>
+                  <span class="hint">Frais d'acquisition estimés</span>
+                </div>
+                <output class="counter-pill" for="notaryFees" id="notaryFeesValue">18 000 €</output>
+              </div>
+              <div class="range-wrap">
+                <input id="notaryFees" type="range" min="0" max="100000" step="500" value="18000" data-format="currency" />
+                <div class="range-limits"><span>0 €</span><span>100 000 €</span></div>
+              </div>
+            </div>
+
+            <div class="control">
+              <div class="control-head">
+                <div>
+                  <label for="worksBudget">Travaux / ameublement</label>
+                  <span class="hint">Budget initial complémentaire</span>
+                </div>
+                <output class="counter-pill" for="worksBudget" id="worksBudgetValue">10 000 €</output>
+              </div>
+              <div class="range-wrap">
+                <input id="worksBudget" type="range" min="0" max="200000" step="1000" value="10000" data-format="currency" />
+                <div class="range-limits"><span>0 €</span><span>200 000 €</span></div>
+              </div>
+            </div>
+
+            <div class="control">
+              <div class="control-head">
+                <div>
+                  <label for="monthlyCharges">Charges mensuelles</label>
+                  <span class="hint">Charges non récupérables, assurance, gestion</span>
+                </div>
+                <output class="counter-pill" for="monthlyCharges" id="monthlyChargesValue">180 €</output>
+              </div>
+              <div class="range-wrap">
+                <input id="monthlyCharges" type="range" min="0" max="2000" step="10" value="180" data-format="currency" />
+                <div class="range-limits"><span>0 €</span><span>2 000 €</span></div>
+              </div>
+            </div>
+
+            <div class="control">
+              <div class="control-head">
+                <div>
+                  <label for="propertyTax">Taxe foncière annuelle</label>
+                  <span class="hint">Montant annuel estimé</span>
+                </div>
+                <output class="counter-pill" for="propertyTax" id="propertyTaxValue">1 200 €</output>
+              </div>
+              <div class="range-wrap">
+                <input id="propertyTax" type="range" min="0" max="12000" step="100" value="1200" data-format="currency" />
+                <div class="range-limits"><span>0 €</span><span>12 000 €</span></div>
+              </div>
+            </div>
+
+            <div class="control">
+              <div class="control-head">
+                <div>
+                  <label for="monthlyLoan">Mensualité de crédit</label>
+                  <span class="hint">Capital, intérêts et assurance</span>
+                </div>
+                <output class="counter-pill" for="monthlyLoan" id="monthlyLoanValue">950 €</output>
+              </div>
+              <div class="range-wrap">
+                <input id="monthlyLoan" type="range" min="0" max="6000" step="25" value="950" data-format="currency" />
+                <div class="range-limits"><span>0 €</span><span>6 000 €</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="side">
+          <div class="result-card">
+            <h2 class="section-title">Résultats</h2>
+            <div class="result-row">
+              <span>Coût total du projet</span>
+              <strong id="totalCost">0 €</strong>
+            </div>
+            <div class="result-row">
+              <span>Revenus locatifs annuels</span>
+              <strong id="annualRent">0 €</strong>
+            </div>
+            <div class="result-row">
+              <span>Charges annuelles</span>
+              <strong id="annualCosts">0 €</strong>
+            </div>
+            <div class="result-row">
+              <span>Rendement brut</span>
+              <strong id="grossRate">0,00 %</strong>
+            </div>
+            <div class="result-row">
+              <span>Rendement net</span>
+              <strong id="netRate">0,00 %</strong>
+            </div>
+            <div class="result-row" id="cashflowRow">
+              <span>Cash-flow mensuel</span>
+              <strong id="monthlyCashflow">0 €</strong>
+            </div>
+            <div class="result-row">
+              <span>Retour sur apport</span>
+              <strong id="returnOnContribution">0,00 %</strong>
+            </div>
+          </div>
+
+          <div class="insight-card">
+            <div class="insight-badge" id="profileBadge">Analyse</div>
+            <h3 id="profileTitle">Projet à analyser</h3>
+            <p id="profileText">Ajustez les curseurs pour obtenir une lecture claire de la rentabilité estimée.</p>
+            <div class="bar" aria-hidden="true"><div class="bar-fill" id="scoreBar"></div></div>
+          </div>
+
+          <div class="note-card">
+            <h3>Lecture rapide</h3>
+            <p>
+              Le rendement brut mesure le rapport entre les loyers et le coût total. Le rendement net affine le calcul
+              en intégrant les charges courantes, la taxe foncière et les frais récurrents.
+            </p>
+          </div>
+        </aside>
+      </section>
+
+      <p class="footer-note">
+        Estimation indicative sans valeur contractuelle. Les résultats dépendent des hypothèses saisies et ne remplacent pas une étude patrimoniale complète.
+      </p>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      const formatterFR = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
+      const percentFR = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      const fields = [
+        'purchasePrice',
+        'monthlyRent',
+        'personalContribution',
+        'notaryFees',
+        'worksBudget',
+        'monthlyCharges',
+        'propertyTax',
+        'monthlyLoan'
+      ];
+
+      const state = {};
+      const animatedValues = {};
+      const animationFrames = {};
+
+      function formatNumber(value) {
+        return formatterFR.format(Math.round(Number(value) || 0));
+      }
+
+      function formatCurrency(value, signed) {
+        const number = Math.round(Number(value) || 0);
+        const sign = signed && number > 0 ? '+ ' : signed && number < 0 ? '- ' : '';
+        return sign + formatNumber(Math.abs(number)) + ' €';
+      }
+
+      function formatPercent(value) {
+        return percentFR.format(Number(value) || 0) + ' %';
+      }
+
+      function getValue(id) {
+        return Number(document.getElementById(id).value) || 0;
+      }
+
+      function setRangeProgress(input) {
+        const min = Number(input.min) || 0;
+        const max = Number(input.max) || 100;
+        const value = Number(input.value) || 0;
+        const progress = ((value - min) / (max - min)) * 100;
+        input.style.setProperty('--progress', progress + '%');
+      }
+
+      function animateCounter(id, target, formatter) {
+        const element = document.getElementById(id);
+        if (!element) return;
+
+        const start = animatedValues[id] ?? target;
+        const end = Number(target) || 0;
+        const duration = 420;
+        const startTime = performance.now();
+
+        if (animationFrames[id]) cancelAnimationFrame(animationFrames[id]);
+        element.classList.add('is-counting');
+
+        function tick(now) {
+          const elapsed = now - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          const current = start + (end - start) * eased;
+
+          element.textContent = formatter(current);
+          animatedValues[id] = current;
+
+          if (progress < 1) {
+            animationFrames[id] = requestAnimationFrame(tick);
+          } else {
+            element.textContent = formatter(end);
+            animatedValues[id] = end;
+            window.setTimeout(() => element.classList.remove('is-counting'), 120);
+          }
+        }
+
+        animationFrames[id] = requestAnimationFrame(tick);
+      }
+
+      function setText(id, value) {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
+      }
+
+      function calculate() {
+        fields.forEach(id => state[id] = getValue(id));
+
+        const totalCost = state.purchasePrice + state.notaryFees + state.worksBudget;
+        const annualRent = state.monthlyRent * 12;
+        const annualOperatingCosts = (state.monthlyCharges * 12) + state.propertyTax;
+        const annualNetIncome = annualRent - annualOperatingCosts;
+        const grossRate = totalCost > 0 ? (annualRent / totalCost) * 100 : 0;
+        const netRate = totalCost > 0 ? (annualNetIncome / totalCost) * 100 : 0;
+        const monthlyCashflow = state.monthlyRent - state.monthlyCharges - (state.propertyTax / 12) - state.monthlyLoan;
+        const returnOnContribution = state.personalContribution > 0 ? ((annualNetIncome - (state.monthlyLoan * 12)) / state.personalContribution) * 100 : 0;
+
+        setText('totalCost', formatCurrency(totalCost));
+        setText('annualRent', formatCurrency(annualRent));
+        setText('annualCosts', formatCurrency(annualOperatingCosts));
+        setText('grossRate', formatPercent(grossRate));
+        setText('netRate', formatPercent(netRate));
+        setText('monthlyCashflow', formatCurrency(monthlyCashflow, true));
+        setText('returnOnContribution', state.personalContribution > 0 ? formatPercent(returnOnContribution) : 'Non calculable');
+        setText('grossRateMini', formatPercent(grossRate));
+        setText('cashflowMini', formatCurrency(monthlyCashflow, true));
+        setText('netRateMain', percentFR.format(netRate));
+
+        const cashflowRow = document.getElementById('cashflowRow');
+        cashflowRow.classList.toggle('positive', monthlyCashflow >= 0);
+        cashflowRow.classList.toggle('negative', monthlyCashflow < 0);
+
+        updateInsight(netRate, monthlyCashflow);
+      }
+
+      function updateInsight(netRate, monthlyCashflow) {
+        const badge = document.getElementById('profileBadge');
+        const title = document.getElementById('profileTitle');
+        const text = document.getElementById('profileText');
+        const scoreBar = document.getElementById('scoreBar');
+
+        let score = Math.max(0, Math.min(100, netRate * 12));
+        scoreBar.style.width = score + '%';
+
+        if (netRate >= 6 && monthlyCashflow >= 0) {
+          badge.textContent = 'Très solide';
+          title.textContent = 'Rentabilité attractive';
+          text.textContent = 'Le projet combine un rendement net élevé et un cash-flow positif. Il peut être intéressant pour un profil investisseur orienté performance.';
+        } else if (netRate >= 4 && monthlyCashflow >= -150) {
+          badge.textContent = 'Équilibré';
+          title.textContent = 'Projet cohérent';
+          text.textContent = 'La rentabilité reste correcte. Le point à surveiller est le niveau de charges et la mensualité de crédit pour préserver le cash-flow.';
+        } else if (netRate >= 2.5) {
+          badge.textContent = 'À optimiser';
+          title.textContent = 'Marge de progression';
+          text.textContent = 'Le projet peut être amélioré en négociant le prix, en augmentant le loyer potentiel ou en réduisant les charges récurrentes.';
+        } else {
+          badge.textContent = 'Prudence';
+          title.textContent = 'Rentabilité faible';
+          text.textContent = 'Les hypothèses actuelles donnent une rentabilité limitée. Une étude plus détaillée est recommandée avant de se positionner.';
+        }
+      }
+
+      function syncRange(id, animated) {
+        const input = document.getElementById(id);
+        const outputId = id + 'Value';
+        const value = Number(input.value) || 0;
+
+        setRangeProgress(input);
+
+        if (animated) {
+          animateCounter(outputId, value, formatCurrency);
+        } else {
+          animatedValues[outputId] = value;
+          setText(outputId, formatCurrency(value));
+        }
+      }
+
+      fields.forEach(id => {
+        const input = document.getElementById(id);
+        syncRange(id, false);
+        input.addEventListener('input', function () {
+          syncRange(id, true);
+          calculate();
+        });
+      });
+
+      calculate();
+    })();
+  </script>
+</body>
+</html>
