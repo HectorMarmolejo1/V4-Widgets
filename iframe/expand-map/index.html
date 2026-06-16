@@ -1,1 +1,419 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expand Map Strasbourg</title>
 
+  <style>
+    :root {
+      --bg: transparent;
+      --card: rgba(18, 18, 18, 0.88);
+      --border: rgba(255, 255, 255, 0.14);
+      --text: #ffffff;
+      --muted: rgba(255, 255, 255, 0.62);
+      --accent: #34d399;
+      --road-main: rgba(255, 255, 255, 0.26);
+      --road-soft: rgba(255, 255, 255, 0.11);
+      --building: rgba(255, 255, 255, 0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      overflow: hidden;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .map-widget {
+      width: 100%;
+      height: 360px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      perspective: 1000px;
+      background: transparent;
+    }
+
+    .map-card {
+      position: relative;
+      width: 250px;
+      height: 150px;
+      border-radius: 24px;
+      overflow: hidden;
+      cursor: pointer;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      transform-style: preserve-3d;
+      transition:
+        width 0.55s cubic-bezier(.2,.8,.2,1),
+        height 0.55s cubic-bezier(.2,.8,.2,1),
+        transform 0.18s ease,
+        box-shadow 0.35s ease;
+      box-shadow: 0 24px 60px rgba(0,0,0,.18);
+    }
+
+    .map-card.is-expanded {
+      width: 390px;
+      height: 290px;
+      box-shadow: 0 34px 90px rgba(0,0,0,.28);
+    }
+
+    .gradient {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 15%, rgba(52,211,153,.15), transparent 36%),
+        linear-gradient(135deg, rgba(255,255,255,.08), transparent 42%, rgba(255,255,255,.07));
+      pointer-events: none;
+    }
+
+    .grid {
+      position: absolute;
+      inset: 0;
+      opacity: .08;
+      background-image:
+        linear-gradient(rgba(255,255,255,.22) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.22) 1px, transparent 1px);
+      background-size: 22px 22px;
+      transition: opacity .3s ease;
+    }
+
+    .map-card.is-expanded .grid {
+      opacity: 0;
+    }
+
+    .city-map {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity .35s ease .08s;
+    }
+
+    .map-card.is-expanded .city-map {
+      opacity: 1;
+    }
+
+    .map-base {
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,.055);
+    }
+
+    .roads svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .road {
+      stroke-dasharray: 400;
+      stroke-dashoffset: 400;
+    }
+
+    .map-card.is-expanded .road {
+      animation: drawRoad .9s ease forwards;
+    }
+
+    .road-1 { animation-delay: .12s; }
+    .road-2 { animation-delay: .2s; }
+    .road-3 { animation-delay: .3s; }
+    .road-4 { animation-delay: .38s; }
+    .road-5 { animation-delay: .46s; }
+    .road-6 { animation-delay: .54s; }
+
+    @keyframes drawRoad {
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    .building {
+      position: absolute;
+      border-radius: 5px;
+      background: var(--building);
+      border: 1px solid rgba(255,255,255,.08);
+      opacity: 0;
+      transform: scale(.8);
+    }
+
+    .map-card.is-expanded .building {
+      animation: pop .45s ease forwards;
+    }
+
+    .b1 { width: 52px; height: 38px; top: 44%; left: 9%; animation-delay: .45s; }
+    .b2 { width: 42px; height: 34px; top: 16%; left: 36%; animation-delay: .52s; }
+    .b3 { width: 64px; height: 42px; top: 68%; left: 72%; animation-delay: .59s; }
+    .b4 { width: 38px; height: 68px; top: 20%; right: 10%; animation-delay: .64s; }
+    .b5 { width: 32px; height: 30px; top: 58%; left: 5%; animation-delay: .7s; }
+    .b6 { width: 58px; height: 26px; top: 8%; left: 72%; animation-delay: .76s; }
+
+    @keyframes pop {
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .pin {
+      position: absolute;
+      left: 50%;
+      top: 48%;
+      width: 38px;
+      height: 38px;
+      transform: translate(-50%, -50%) scale(0);
+      filter: drop-shadow(0 0 14px rgba(52,211,153,.62));
+      opacity: 0;
+      z-index: 4;
+    }
+
+    .map-card.is-expanded .pin {
+      animation: pinIn .55s cubic-bezier(.2,1.4,.4,1) .32s forwards;
+    }
+
+    @keyframes pinIn {
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+
+    .fade-bottom {
+      position: absolute;
+      inset: auto 0 0;
+      height: 48%;
+      background: linear-gradient(to top, rgba(18,18,18,.88), transparent);
+      pointer-events: none;
+    }
+
+    .content {
+      position: relative;
+      z-index: 5;
+      height: 100%;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .map-icon {
+      color: var(--accent);
+      filter: drop-shadow(0 0 8px rgba(52,211,153,.35));
+      transition: opacity .3s ease;
+    }
+
+    .map-card.is-expanded .map-icon {
+      opacity: 0;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 9px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      backdrop-filter: blur(10px);
+      color: var(--muted);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 700;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px rgba(52,211,153,.75);
+    }
+
+    .bottom {
+      transition: transform .25s ease;
+    }
+
+    .map-card:hover .bottom {
+      transform: translateX(4px);
+    }
+
+    .location {
+      margin: 0 0 5px;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .coordinates {
+      margin: 0;
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      font-size: 12px;
+      line-height: 1.4;
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      transition: max-height .25s ease, opacity .25s ease;
+    }
+
+    .map-card.is-expanded .coordinates {
+      max-height: 40px;
+      opacity: 1;
+    }
+
+    .underline {
+      width: 100%;
+      height: 1px;
+      margin-top: 10px;
+      transform-origin: left;
+      transform: scaleX(.28);
+      background: linear-gradient(90deg, var(--accent), rgba(52,211,153,.2), transparent);
+      transition: transform .35s ease;
+    }
+
+    .map-card:hover .underline,
+    .map-card.is-expanded .underline {
+      transform: scaleX(1);
+    }
+
+    .hint {
+      position: absolute;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%) translateY(8px);
+      color: rgba(255,255,255,.52);
+      font-size: 11px;
+      opacity: 0;
+      transition: .25s ease;
+      pointer-events: none;
+    }
+
+    .map-card:hover + .hint {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .map-card.is-expanded + .hint {
+      opacity: 0;
+    }
+
+    @media (max-width: 520px) {
+      .map-widget {
+        height: 330px;
+      }
+
+      .map-card.is-expanded {
+        width: 92vw;
+        height: 280px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="map-widget">
+    <div class="map-card" id="mapCard">
+      <div class="gradient"></div>
+      <div class="grid"></div>
+
+      <div class="city-map">
+        <div class="map-base"></div>
+
+        <div class="roads">
+          <svg viewBox="0 0 390 290" preserveAspectRatio="none">
+            <line class="road road-1" x1="0" y1="98" x2="390" y2="98" stroke="var(--road-main)" stroke-width="5" />
+            <line class="road road-2" x1="0" y1="188" x2="390" y2="188" stroke="var(--road-main)" stroke-width="5" />
+            <line class="road road-3" x1="118" y1="0" x2="118" y2="290" stroke="var(--road-soft)" stroke-width="4" />
+            <line class="road road-4" x1="274" y1="0" x2="274" y2="290" stroke="var(--road-soft)" stroke-width="4" />
+            <line class="road road-5" x1="0" y1="145" x2="390" y2="145" stroke="var(--road-soft)" stroke-width="2" />
+            <line class="road road-6" x1="205" y1="0" x2="205" y2="290" stroke="var(--road-soft)" stroke-width="2" />
+          </svg>
+        </div>
+
+        <div class="building b1"></div>
+        <div class="building b2"></div>
+        <div class="building b3"></div>
+        <div class="building b4"></div>
+        <div class="building b5"></div>
+        <div class="building b6"></div>
+
+        <svg class="pin" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="var(--accent)" />
+          <circle cx="12" cy="9" r="2.7" fill="#111111" />
+        </svg>
+
+        <div class="fade-bottom"></div>
+      </div>
+
+      <div class="content">
+        <div class="top">
+          <svg class="map-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
+            <line x1="9" x2="9" y1="3" y2="18" />
+            <line x1="15" x2="15" y1="6" y2="21" />
+          </svg>
+
+          <div class="status">
+            <span class="dot"></span>
+            Live
+          </div>
+        </div>
+
+        <div class="bottom">
+          <h3 class="location">Strasbourg, France</h3>
+          <p class="coordinates">48.5734° N, 7.7521° E</p>
+          <div class="underline"></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="hint">Cliquez pour agrandir</p>
+  </div>
+
+  <script>
+    const card = document.getElementById("mapCard");
+
+    card.addEventListener("click", () => {
+      card.classList.toggle("is-expanded");
+    });
+
+    card.addEventListener("mousemove", (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+
+      const rotateY = (x / rect.width) * 12;
+      const rotateX = -(y / rect.height) * 12;
+
+      card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    });
+
+    card.addEventListener("mouseleave", () => {
+      card.style.transform = "rotateX(0deg) rotateY(0deg)";
+    });
+  </script>
+
+</body>
+</html>
