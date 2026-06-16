@@ -1,1 +1,390 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vertical Real Estate Stack</title>
 
+  <style>
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      overflow: hidden;
+      font-family: Arial, Helvetica, sans-serif;
+      user-select: none;
+    }
+
+    .stack-widget {
+      position: relative;
+      width: 100%;
+      height: 720px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      overflow: hidden;
+    }
+
+    .ambient {
+      position: absolute;
+      width: 520px;
+      height: 520px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.05);
+      filter: blur(70px);
+      pointer-events: none;
+    }
+
+    .stack {
+      position: relative;
+      width: 320px;
+      height: 520px;
+      perspective: 1200px;
+    }
+
+    .card {
+      position: absolute;
+      inset: 0;
+      width: 300px;
+      height: 440px;
+      margin: auto;
+      border-radius: 30px;
+      overflow: hidden;
+      cursor: grab;
+      background: #111;
+      box-shadow: 0 25px 60px rgba(0,0,0,.28);
+      transform-style: preserve-3d;
+      transition:
+        transform .55s cubic-bezier(.2,.8,.2,1),
+        opacity .55s ease,
+        box-shadow .35s ease;
+    }
+
+    .card:active { cursor: grabbing; }
+
+    .card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      pointer-events: none;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(255,255,255,.16), transparent 35%, rgba(0,0,0,.35));
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .card-title {
+      position: absolute;
+      left: 22px;
+      right: 22px;
+      bottom: 22px;
+      z-index: 3;
+      color: #fff;
+    }
+
+    .card-title strong {
+      display: block;
+      font-size: 21px;
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+      margin-bottom: 6px;
+    }
+
+    .card-title span {
+      font-size: 13px;
+      color: rgba(255,255,255,.72);
+    }
+
+    .counter {
+      position: absolute;
+      left: clamp(18px, 7vw, 90px);
+      top: 50%;
+      transform: translateY(-50%);
+      color: #111;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .counter-current {
+      font-size: 44px;
+      font-weight: 300;
+      line-height: 1;
+    }
+
+    .counter-line {
+      width: 42px;
+      height: 1px;
+      background: rgba(0,0,0,.25);
+      margin: 12px 0;
+    }
+
+    .counter-total {
+      font-size: 15px;
+      color: rgba(0,0,0,.55);
+    }
+
+    .dots {
+      position: absolute;
+      right: clamp(18px, 7vw, 90px);
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border: 0;
+      padding: 0;
+      border-radius: 999px;
+      background: rgba(0,0,0,.28);
+      cursor: pointer;
+      transition: height .3s ease, background .3s ease;
+    }
+
+    .dot.active {
+      height: 28px;
+      background: #111;
+    }
+
+    .hint {
+      position: absolute;
+      left: 50%;
+      bottom: 36px;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      color: rgba(0,0,0,.55);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .arrow {
+      width: 22px;
+      height: 22px;
+      animation: float 1.5s ease-in-out infinite;
+    }
+
+    .arrow.down {
+      animation-delay: .2s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-7px); }
+    }
+
+    @media (max-width: 680px) {
+      .stack-widget {
+        height: 650px;
+      }
+
+      .stack {
+        width: 280px;
+        height: 480px;
+      }
+
+      .card {
+        width: 260px;
+        height: 390px;
+      }
+
+      .counter {
+        left: 14px;
+      }
+
+      .counter-current {
+        font-size: 30px;
+      }
+
+      .counter-line {
+        width: 28px;
+      }
+
+      .dots {
+        right: 14px;
+      }
+
+      .hint {
+        bottom: 24px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="stack-widget" id="widget">
+    <div class="ambient"></div>
+
+    <div class="counter">
+      <span class="counter-current" id="currentNumber">01</span>
+      <span class="counter-line"></span>
+      <span class="counter-total" id="totalNumber">05</span>
+    </div>
+
+    <div class="stack" id="stack"></div>
+
+    <div class="dots" id="dots"></div>
+
+    <div class="hint">
+      <svg class="arrow up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+        <path d="M12 19V5M5 12l7-7 7 7"/>
+      </svg>
+      Scroll ou glisser
+      <svg class="arrow down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+        <path d="M12 5v14M19 12l-7 7-7-7"/>
+      </svg>
+    </div>
+  </div>
+
+  <script>
+    const images = [
+      {
+        src: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=900&q=80",
+        title: "Maison contemporaine",
+        subtitle: "Architecture lumineuse et moderne"
+      },
+      {
+        src: "https://unsplash.com/fr/photos/une-cuisine-avec-une-table-des-chaises-et-une-fenetre-R_edm2AqBLE",
+        title: "Appartement premium",
+        subtitle: "Volumes élégants en coeur de ville"
+      },
+      {
+        src: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=80",
+        title: "Villa avec piscine",
+        subtitle: "Confort, calme et prestations haut de gamme"
+      },
+      {
+        src: "https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=900&q=80",
+        title: "Maison familiale",
+        subtitle: "Un cadre idéal pour vivre et investir"
+      },
+      {
+        src: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=900&q=80",
+        title: "Intérieur haut de gamme",
+        subtitle: "Design sobre, chaleureux et raffiné"
+      }
+    ];
+
+    const stack = document.getElementById("stack");
+    const dots = document.getElementById("dots");
+    const currentNumber = document.getElementById("currentNumber");
+    const totalNumber = document.getElementById("totalNumber");
+
+    let currentIndex = 0;
+    let lastNavigation = 0;
+    let startY = 0;
+    const cooldown = 420;
+
+    totalNumber.textContent = String(images.length).padStart(2, "0");
+
+    function getDiff(index) {
+      const total = images.length;
+      let diff = index - currentIndex;
+      if (diff > total / 2) diff -= total;
+      if (diff < -total / 2) diff += total;
+      return diff;
+    }
+
+    function getStyle(diff) {
+      if (diff === 0) return { y: 0, scale: 1, opacity: 1, z: 5, rotateX: 0 };
+      if (diff === -1) return { y: -160, scale: .82, opacity: .6, z: 4, rotateX: 8 };
+      if (diff === -2) return { y: -280, scale: .7, opacity: .28, z: 3, rotateX: 15 };
+      if (diff === 1) return { y: 160, scale: .82, opacity: .6, z: 4, rotateX: -8 };
+      if (diff === 2) return { y: 280, scale: .7, opacity: .28, z: 3, rotateX: -15 };
+      return { y: diff > 0 ? 420 : -420, scale: .6, opacity: 0, z: 0, rotateX: diff > 0 ? -20 : 20 };
+    }
+
+    function render() {
+      stack.innerHTML = "";
+      dots.innerHTML = "";
+      currentNumber.textContent = String(currentIndex + 1).padStart(2, "0");
+
+      images.forEach((image, index) => {
+        const diff = getDiff(index);
+        if (Math.abs(diff) <= 2) {
+          const s = getStyle(diff);
+          const card = document.createElement("div");
+          card.className = "card";
+          card.style.zIndex = s.z;
+          card.style.opacity = s.opacity;
+          card.style.transform = `translateY(${s.y}px) scale(${s.scale}) rotateX(${s.rotateX}deg)`;
+
+          card.innerHTML = `
+            <img src="${image.src}" alt="${image.title}" draggable="false">
+            <div class="card-title">
+              <strong>${image.title}</strong>
+              <span>${image.subtitle}</span>
+            </div>
+          `;
+
+          card.addEventListener("pointerdown", (e) => {
+            startY = e.clientY;
+            card.setPointerCapture(e.pointerId);
+          });
+
+          card.addEventListener("pointerup", (e) => {
+            const delta = e.clientY - startY;
+            if (delta < -45) navigate(1);
+            if (delta > 45) navigate(-1);
+          });
+
+          stack.appendChild(card);
+        }
+
+        const dot = document.createElement("button");
+        dot.className = "dot" + (index === currentIndex ? " active" : "");
+        dot.setAttribute("aria-label", "Image " + (index + 1));
+        dot.addEventListener("click", () => {
+          currentIndex = index;
+          render();
+        });
+
+        dots.appendChild(dot);
+      });
+    }
+
+    function navigate(direction) {
+      const now = Date.now();
+      if (now - lastNavigation < cooldown) return;
+      lastNavigation = now;
+
+      if (direction > 0) {
+        currentIndex = currentIndex === images.length - 1 ? 0 : currentIndex + 1;
+      } else {
+        currentIndex = currentIndex === 0 ? images.length - 1 : currentIndex - 1;
+      }
+
+      render();
+    }
+
+    window.addEventListener("wheel", (e) => {
+      if (Math.abs(e.deltaY) > 30) {
+        navigate(e.deltaY > 0 ? 1 : -1);
+      }
+    }, { passive: true });
+
+    render();
+  </script>
+
+</body>
+</html>
