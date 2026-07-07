@@ -1,1 +1,21 @@
-
+{
+  "agencyName": "Maison Horizon",
+  "rating": "4,9",
+  "reviewCount": "+250 avis",
+  "googleUrl": "https://www.google.com",
+  "accent": "#C8A24A",
+  "reviews": [
+    {
+      "name": "Marie L.",
+      "text": "Une équipe très professionnelle, disponible et à l’écoute tout au long du projet."
+    },
+    {
+      "name": "Thomas R.",
+      "text": "Accompagnement clair, conseils pertinents et suivi sérieux du début à la fin."
+    },
+    {
+      "name": "Claire D.",
+      "text": "Très bonne expérience avec l’agence. Réactivité, transparence et efficacité."
+    }
+  ]
+}
