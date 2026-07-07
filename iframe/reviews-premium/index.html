@@ -1,1 +1,351 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reviews Premium</title>
 
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      background: transparent;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #111111;
+    }
+
+    .reviews-widget {
+      width: 100%;
+      padding: 34px 18px;
+      background: transparent;
+    }
+
+    .reviews-card {
+      max-width: 1050px;
+      margin: 0 auto;
+      padding: 34px;
+      border-radius: 28px;
+      background: #ffffff;
+      border: 1px solid rgba(0,0,0,.08);
+      box-shadow: 0 24px 70px rgba(0,0,0,.08);
+    }
+
+    .reviews-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 30px;
+    }
+
+    .reviews-brand {
+      min-width: 0;
+    }
+
+    .reviews-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.04);
+      font-size: 12px;
+      font-weight: 700;
+      color: rgba(0,0,0,.62);
+      margin-bottom: 12px;
+    }
+
+    .google-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4285F4;
+      box-shadow:
+        10px 0 0 #DB4437,
+        20px 0 0 #F4B400,
+        30px 0 0 #0F9D58;
+      margin-right: 30px;
+    }
+
+    .reviews-title {
+      margin: 0;
+      font-size: clamp(25px, 4vw, 42px);
+      line-height: 1.05;
+      letter-spacing: -0.05em;
+      font-weight: 800;
+    }
+
+    .reviews-title span {
+      color: var(--accent);
+    }
+
+    .reviews-score {
+      flex: 0 0 auto;
+      text-align: right;
+    }
+
+    .score-number {
+      font-size: clamp(42px, 7vw, 72px);
+      line-height: .9;
+      letter-spacing: -0.06em;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .score-stars {
+      margin-top: 10px;
+      font-size: 19px;
+      letter-spacing: 2px;
+      color: var(--accent);
+    }
+
+    .score-count {
+      margin-top: 8px;
+      font-size: 14px;
+      color: rgba(0,0,0,.55);
+    }
+
+    .reviews-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 28px;
+    }
+
+    .review-item {
+      position: relative;
+      min-height: 190px;
+      padding: 22px;
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(0,0,0,.035), rgba(0,0,0,.015));
+      border: 1px solid rgba(0,0,0,.06);
+      overflow: hidden;
+      transition: transform .28s ease, box-shadow .28s ease, border-color .28s ease;
+    }
+
+    .review-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(0,0,0,.08);
+      border-color: color-mix(in srgb, var(--accent) 38%, rgba(0,0,0,.08));
+    }
+
+    .review-item:before {
+      content: "";
+      position: absolute;
+      left: 22px;
+      right: 22px;
+      bottom: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      transform: scaleX(0);
+      transition: transform .35s ease;
+    }
+
+    .review-item:hover:before {
+      transform: scaleX(1);
+    }
+
+    .review-stars {
+      color: var(--accent);
+      font-size: 14px;
+      letter-spacing: 1px;
+      margin-bottom: 14px;
+    }
+
+    .review-text {
+      margin: 0 0 20px;
+      font-size: 15px;
+      line-height: 1.55;
+      color: rgba(0,0,0,.72);
+    }
+
+    .review-author {
+      position: absolute;
+      left: 22px;
+      bottom: 22px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 800;
+      color: rgba(0,0,0,.82);
+    }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .reviews-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-top: 26px;
+      padding-top: 22px;
+      border-top: 1px solid rgba(0,0,0,.08);
+    }
+
+    .reviews-note {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.45;
+      color: rgba(0,0,0,.48);
+    }
+
+    .reviews-button {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 20px;
+      border-radius: 999px;
+      background: #111111;
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 800;
+      transition: transform .25s ease, background .25s ease;
+    }
+
+    .reviews-button:hover {
+      transform: translateY(-2px);
+      background: var(--accent);
+    }
+
+    @media (max-width: 860px) {
+      .reviews-card {
+        padding: 26px;
+      }
+
+      .reviews-header {
+        display: block;
+      }
+
+      .reviews-score {
+        text-align: left;
+        margin-top: 24px;
+      }
+
+      .reviews-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .reviews-footer {
+        display: block;
+      }
+
+      .reviews-button {
+        margin-top: 18px;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <section class="reviews-widget">
+    <div class="reviews-card">
+      <div class="reviews-header">
+        <div class="reviews-brand">
+          <div class="reviews-label">
+            <span class="google-dot"></span>
+            Avis Google
+          </div>
+
+          <h2 class="reviews-title">
+            Ce que disent les clients de <span id="agencyName"></span>
+          </h2>
+        </div>
+
+        <div class="reviews-score">
+          <div class="score-number" id="rating"></div>
+          <div class="score-stars">★★★★★</div>
+          <div class="score-count" id="reviewCount"></div>
+        </div>
+      </div>
+
+      <div class="reviews-grid" id="reviewsGrid"></div>
+
+      <div class="reviews-footer">
+        <p class="reviews-note">
+          Avis sélectionnés manuellement depuis une source publique. 
+          Consultez la fiche Google de l’agence pour voir les avis les plus récents.
+        </p>
+
+        <a class="reviews-button" id="googleLink" href="#" target="_blank" rel="noopener">
+          Voir les avis Google
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    var config = {
+      agencyName: "Maison Horizon",
+      rating: "4,9",
+      reviewCount: "+250 avis",
+      googleUrl: "https://www.google.com",
+      accent: "#C8A24A",
+
+      reviews: [
+        {
+          name: "Marie L.",
+          text: "Une équipe très professionnelle, disponible et à l’écoute tout au long du projet."
+        },
+        {
+          name: "Thomas R.",
+          text: "Accompagnement clair, conseils pertinents et suivi sérieux du début à la fin."
+        },
+        {
+          name: "Claire D.",
+          text: "Très bonne expérience avec l’agence. Réactivité, transparence et efficacité."
+        }
+      ]
+    };
+
+    document.documentElement.style.setProperty("--accent", config.accent);
+
+    document.getElementById("agencyName").innerHTML = config.agencyName;
+    document.getElementById("rating").innerHTML = config.rating + "/5";
+    document.getElementById("reviewCount").innerHTML = config.reviewCount;
+    document.getElementById("googleLink").href = config.googleUrl;
+
+    var grid = document.getElementById("reviewsGrid");
+
+    for (var i = 0; i < config.reviews.length; i++) {
+      var review = config.reviews[i];
+      var initials = review.name.charAt(0);
+
+      var item = document.createElement("article");
+      item.className = "review-item";
+
+      item.innerHTML =
+        '<div class="review-stars">★★★★★</div>' +
+        '<p class="review-text">“' + review.text + '”</p>' +
+        '<div class="review-author">' +
+          '<span class="avatar">' + initials + '</span>' +
+          '<span>' + review.name + '</span>' +
+        '</div>';
+
+      grid.appendChild(item);
+    }
+  </script>
+
+</body>
+</html>
