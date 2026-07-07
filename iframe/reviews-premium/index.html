@@ -296,41 +296,33 @@
   </section>
 
   <script>
-    var config = {
-      agencyName: "Maison Horizon",
-      rating: "4,9",
-      reviewCount: "+250 avis",
-      googleUrl: "https://www.google.com",
-      accent: "#C8A24A",
+  var defaultClient = "maison-horizon";
 
-      reviews: [
-        {
-          name: "Marie L.",
-          text: "Une équipe très professionnelle, disponible et à l’écoute tout au long du projet."
-        },
-        {
-          name: "Thomas R.",
-          text: "Accompagnement clair, conseils pertinents et suivi sérieux du début à la fin."
-        },
-        {
-          name: "Claire D.",
-          text: "Très bonne expérience avec l’agence. Réactivité, transparence et efficacité."
-        }
-      ]
-    };
+  function getClientFromUrl() {
+    var params = new URLSearchParams(window.location.search);
+    return params.get("client") || defaultClient;
+  }
 
-    document.documentElement.style.setProperty("--accent", config.accent);
+  function sanitizeClientName(value) {
+    return String(value)
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, "");
+  }
 
-    document.getElementById("agencyName").innerHTML = config.agencyName;
-    document.getElementById("rating").innerHTML = config.rating + "/5";
-    document.getElementById("reviewCount").innerHTML = config.reviewCount;
-    document.getElementById("googleLink").href = config.googleUrl;
+  function renderReviews(config) {
+    document.documentElement.style.setProperty("--accent", config.accent || "#C8A24A");
+
+    document.getElementById("agencyName").innerHTML = config.agencyName || "";
+    document.getElementById("rating").innerHTML = (config.rating || "-") + "/5";
+    document.getElementById("reviewCount").innerHTML = config.reviewCount || "";
+    document.getElementById("googleLink").href = config.googleUrl || "#";
 
     var grid = document.getElementById("reviewsGrid");
+    grid.innerHTML = "";
 
     for (var i = 0; i < config.reviews.length; i++) {
       var review = config.reviews[i];
-      var initials = review.name.charAt(0);
+      var initials = review.name ? review.name.charAt(0) : "?";
 
       var item = document.createElement("article");
       item.className = "review-item";
@@ -345,7 +337,42 @@
 
       grid.appendChild(item);
     }
-  </script>
+  }
+
+  function renderError() {
+    document.getElementById("agencyName").innerHTML = "l’agence";
+    document.getElementById("rating").innerHTML = "-/5";
+    document.getElementById("reviewCount").innerHTML = "Avis indisponibles";
+
+    var grid = document.getElementById("reviewsGrid");
+    grid.innerHTML =
+      '<article class="review-item">' +
+        '<div class="review-stars">★★★★★</div>' +
+        '<p class="review-text">Les avis sont momentanément indisponibles.</p>' +
+        '<div class="review-author">' +
+          '<span class="avatar">!</span>' +
+          '<span>Google Avis</span>' +
+        '</div>' +
+      '</article>';
+  }
+
+  var client = sanitizeClientName(getClientFromUrl());
+  var dataUrl = "../data/reviews-" + client + ".json";
+
+  fetch(dataUrl)
+    .then(function(response) {
+      if (!response.ok) {
+        throw new Error("JSON not found");
+      }
+      return response.json();
+    })
+    .then(function(config) {
+      renderReviews(config);
+    })
+    .catch(function() {
+      renderError();
+    });
+</script>
 
 </body>
 </html>
