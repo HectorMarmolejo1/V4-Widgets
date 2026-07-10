@@ -1,1 +1,70 @@
+{
+  "id": "agence-strasbourg",
 
+  "agencyName": "Agence Strasbourg Centre",
+
+  "clientType": "agence",
+
+  "businessModel": "agence_classique",
+
+  "specialties": [
+    "transaction",
+    "location",
+    "gestion"
+  ],
+
+  "territory": {
+    "country": "France",
+    "zone": "metropole",
+    "city": "Strasbourg"
+  },
+
+  "brand": {
+    "accent": "#0F6CBD",
+    "text": "#111111",
+    "background": "#FFFFFF"
+  },
+
+  "contact": {
+    "phone": "03 88 00 00 00",
+    "email": "contact@agence-strasbourg.fr",
+    "website": "https://www.google.com"
+  },
+
+  "location": {
+    "address": "Strasbourg, France",
+    "lat": 48.5734,
+    "lng": 7.7521,
+    "coordinatesLabel": "48.5734° N, 7.7521° E"
+  },
+
+  "stats": {
+    "creationYear": 2012,
+    "salesCount": 612,
+    "satisfaction": "4,8"
+  },
+
+  "reviews": {
+    "rating": "4,8",
+    "reviewCount": "+186 avis",
+    "googleUrl": "https://www.google.com",
+
+    "items": [
+      {
+        "name": "Sophie M.",
+        "rating": 5,
+        "text": "Une équipe réactive qui nous a accompagnés avec professionnalisme jusqu'à la signature."
+      },
+      {
+        "name": "Julien B.",
+        "rating": 5,
+        "text": "Excellente connaissance du marché strasbourgeois. Les conseils ont été précieux."
+      },
+      {
+        "name": "Camille R.",
+        "rating": 5,
+        "text": "Très bonne communication, disponibilité et suivi impeccable tout au long de notre projet immobilier."
+      }
+    ]
+  }
+}
