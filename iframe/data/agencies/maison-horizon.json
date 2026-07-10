@@ -1,1 +1,69 @@
+{
+  "id": "maison-horizon",
 
+  "agencyName": "Maison Horizon",
+
+  "clientType": "agence",
+
+  "businessModel": "agence_classique",
+
+  "specialties": [
+    "transaction",
+    "location"
+  ],
+
+  "territory": {
+    "country": "France",
+    "zone": "metropole",
+    "city": "Lyon"
+  },
+
+  "brand": {
+    "accent": "#C8A24A",
+    "text": "#111111",
+    "background": "#FFFFFF"
+  },
+
+  "contact": {
+    "phone": "04 00 00 00 00",
+    "email": "contact@maison-horizon.fr",
+    "website": "https://www.google.com"
+  },
+
+  "location": {
+    "address": "Lyon, France",
+    "lat": 45.7640,
+    "lng": 4.8357,
+    "coordinatesLabel": "45.7640° N, 4.8357° E"
+  },
+
+  "stats": {
+    "creationYear": 2015,
+    "salesCount": 425,
+    "satisfaction": "4,9"
+  },
+
+  "reviews": {
+    "rating": "4,9",
+    "reviewCount": "+250 avis",
+    "googleUrl": "https://www.google.com",
+
+    "items": [
+      {
+        "name": "Marie L.",
+        "rating": 5,
+        "text": "Une équipe très professionnelle, disponible et à l’écoute tout au long du projet."
+      },
+      {
+        "name": "Thomas R.",
+        "rating": 5,
+        "text": "Accompagnement clair, conseils pertinents et suivi sérieux du début à la fin."
+      },
+      {
+        "name": "Claire D.",
+        "rating": 5,
+        "text": "Très bonne expérience avec l’agence. Réactivité, transparence et efficacité."
+      }
+    ]
+  }
+}
